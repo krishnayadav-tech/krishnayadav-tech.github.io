@@ -1,0 +1,198 @@
+```
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Calculator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 12px;
+        }
+         /* Prevent tap/click on track */
+        input[type="range"] {
+          pointer-events: none;
+        }
+
+        /* Enable pointer events only on thumb while dragging */
+        input[type="range"]::-webkit-slider-thumb {
+          pointer-events: auto;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+          pointer-events: auto;
+        }
+
+        #output .card {
+            border-radius: 12px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        #output .card:hover {
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm p-4">
+                <h2 class="text-center mb-4">Investment Calculator</h2>
+
+                <div class="mb-3">
+                    <label class="form-label">Investment Type:</label>
+                    <select id="type" class="form-select">
+                        <option value="sip">SIP (Monthly Investment)</option>
+                        <option value="lumpsum">Lumpsum (One Time Investment)</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Investment Amount:</label>
+                    <input type="text" id="amount" class="form-control" value="10,000">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Time (Years): <span id="timeValue">10</span> years</label>
+                    <input type="range" id="time" class="form-range" min="1" max="30" value="10">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Expected Return Rate (P.A): <span id="returnValue">12</span>%</label>
+                    <input type="range" id="returnRate" class="form-range" min="1" max="30" value="12" step="0.1">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Inflation Rate (P.A):</label>
+                    <input type="number" id="inflationRate" class="form-control" value="6">
+                </div>
+
+                <div class="d-grid">
+                    <button onclick="calculate()" class="btn btn-primary">Calculate</button>
+                </div>
+
+                <div class="output mt-4 alert alert-success d-none" id="output"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const timeRange = document.getElementById('time');
+    const timeValue = document.getElementById('timeValue');
+    const amount = document.getElementById('amount');
+
+    const returnRange = document.getElementById('returnRate');
+    const returnValue = document.getElementById('returnValue');
+
+    timeRange.addEventListener('input', () => {
+        timeValue.textContent = timeRange.value;
+    });
+
+    returnRange.addEventListener('input', () => {
+        returnValue.textContent = returnRange.value;
+    });
+
+    amount.addEventListener('input', (e) => {
+      const value = e.target.value.replace(/,/g, '');  // Remove existing commas
+      if (!isNaN(value)) {
+        e.target.value = Number(value).toLocaleString('en-IN');  // Format with commas
+      }
+    });
+
+    function formatToINR(amount) {
+      if (isNaN(Number(amount))) return '';
+
+      return Number(Math.round(amount)).toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0,
+      });
+    }
+
+    function calculate() {
+        const type = document.getElementById('type').value;
+        const amount = parseFloat(document.getElementById('amount').value.replace(/,/g, ''));
+        const years = parseInt(document.getElementById('time').value);
+        const rate = parseFloat(document.getElementById('returnRate').value) / 100;
+        const inflation = parseFloat(document.getElementById('inflationRate').value) / 100;
+
+        let futureValue = 0;
+        let accumulatedAmount = 0;
+
+        if (type === 'sip') {
+            futureValue = amount * (((Math.pow(1 + rate / 12, years * 12) - 1) / (rate / 12)) * (1 + rate / 12));
+            accumulatedAmount = amount * years * 12;
+        } else {
+            futureValue = amount * Math.pow(1 + rate, years);
+            accumulatedAmount = amount;
+        }
+
+        const inflationAdjusted = futureValue / Math.pow(1 + inflation, years);
+
+        const outputDiv = document.getElementById('output');
+        outputDiv.classList.remove('d-none');
+
+        const returnStatus = rate >= inflation ? 'good' : 'bad';
+
+        outputDiv.innerHTML = `
+          <div class="card border-${returnStatus === 'good' ? 'success' : 'danger'}">
+              <div class="card-body">
+                  <h5 class="card-title mb-4 text-center text-md-start">Your Investment Summary</h5>
+
+                  <div class="d-flex flex-column flex-md-row justify-content-between align-items-center text-center text-md-start mb-3">
+                      <div>
+                          <span class="badge bg-secondary mb-1">Total Investment</span>
+                          <div class="fs-5 fw-bold text-dark">₹${formatToINR(accumulatedAmount)}</div>
+                      </div>
+
+                      <div>
+                          <span class="badge bg-primary mb-1">Future Value</span>
+                          <div class="fs-5 fw-bold text-primary">₹${formatToINR(futureValue)}</div>
+                      </div>
+
+                      <div>
+                          <span class="badge bg-warning text-dark mb-1">
+                          Inflation Adjusted
+                          <i class="bi bi-info-circle ms-1" 
+                            data-bs-toggle="tooltip" 
+                            data-bs-placement="top" 
+                            title="What it looks like in today's world (Inflation adjusted)">
+                          </i>
+                        </span>
+                          <div class="fs-5 fw-bold text-warning">₹${formatToINR(inflationAdjusted)}</div>
+                      </div>
+                  </div>
+
+                  <div class="mt-3">
+                      ${returnStatus === 'good'
+                          ? `<div class="alert alert-success text-center text-md-start" role="alert">
+                                Great! Your returns are beating inflation.
+                            </div>`
+                          : `<div class="alert alert-danger text-center text-md-start" role="alert">
+                                Warning! Your returns are lower than inflation. Consider revising your plan.
+                            </div>`
+                      }
+                  </div>
+              </div>
+          </div>
+        `;
+
+        // Initialize tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+```
