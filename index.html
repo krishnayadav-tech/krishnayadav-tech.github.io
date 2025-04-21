@@ -184,10 +184,10 @@
     function calculate() {
       const monthlyInvestment = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
       const initialAmount = parseFloat(initialAmountInput.value.replace(/,/g, '') || 0);
-      const stepUpRate = parseFloat(stepUpRateInput.value) / 100;
-      const years = parseInt(time.value);
-      const rate = parseFloat(returnRate.value) / 100;
-      const inflation = parseFloat(inflationRateInput.value) / 100;
+      const stepUpRate = parseFloat(stepUpRateInput.value || 0) / 100;
+      const years = parseInt(time.value || 0);
+      const rate = parseFloat(returnRate.value || 0) / 100;
+      const inflation = parseFloat(inflationRateInput.value || 0) / 100;
       const monthlyRate = rate / 12;
 
       let futureValue = 0;
