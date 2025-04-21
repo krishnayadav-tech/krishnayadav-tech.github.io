@@ -107,9 +107,9 @@
           <div class="mb-3">
             <label class="form-label">Annual Step-up (%):</label>
             <div class="slider-group">
-              <input type="range" id="stepUpRateRange" class="form-range" min="0" max="40" step="0.1" value="0">
+              <input type="range" id="stepUpRateRange" class="form-range" min="0" max="20" step="0.1" value="0">
               <div class="input-group">
-                <input type="number" id="stepUpRate" class="form-control" min="0" max="40" step="0.1" value="0">
+                <input type="number" id="stepUpRate" class="form-control" min="0" max="20" step="0.1" value="0">
                 <span class="input-group-text">%</span>
               </div>
             </div>
@@ -294,7 +294,7 @@
     bindRangeSync(time, timeInput, 1, 50);
     bindRangeSync(returnRate, returnRateInput, 1, 40);
     bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
-    bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 40);
+    bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
     bindCommaFormatting(amountInput);
     bindCommaFormatting(initialAmountInput);
 
