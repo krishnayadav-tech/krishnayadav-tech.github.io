@@ -244,8 +244,31 @@
     };
     // on load
     const onLoad = () => {
-      const savedData = localStorage.getItem('investment-calculator');
-      if (savedData) {
+      // check query params
+      const urlParams = new URLSearchParams(window.location.search);
+      const initialAmount = urlParams.get('initialAmount');
+      const amount = urlParams.get('amount');
+      const time = urlParams.get('time');
+      const withdrawalAfter = urlParams.get('withdrawalAfter');
+      const stepUpRate = urlParams.get('stepUpRate');
+      const returnRate = urlParams.get('returnRate');
+      const inflationRate = urlParams.get('inflationRate');
+      if (initialAmount) {
+        initialAmountInput.value = initialAmount;
+        amountInput.value = amount;
+        timeInput.value = time;
+        timeRange.value = time;
+        withdrawalAfterInput.value = withdrawalAfter;
+        withdrawalAfterRange.value = withdrawalAfter;
+        stepUpRateInput.value = stepUpRate;
+        stepUpRateRange.value = stepUpRate;
+        returnRateInput.value = returnRate;
+        returnRateRange.value = returnRate;
+        inflationRateInput.value = inflationRate;
+        inflationRateRange.value = inflationRate;
+        calculate();
+      } else if (savedData) {
+        const savedData = localStorage.getItem('investment-calculator');
         const data = JSON.parse(savedData);
         if (data) {
           const { initialAmount, amount, time, withdrawalAfter, stepUpRate, returnRate: returnRateValue, inflationRate: inflationRateValue } = data;
@@ -314,7 +337,19 @@
     }
     // share
     function share() {
-      const url = window.location.href;
+      let url = window.location.href;
+      const queryParams = new URLSearchParams(window.location.search);
+      const localData = localStorage.getItem('investment-calculator');
+      const data = JSON.parse(localData);
+      queryParams.set('initialAmount', data.initialAmount);
+      queryParams.set('amount', data.amount);
+      queryParams.set('time', data.time);
+      queryParams.set('withdrawalAfter', data.withdrawalAfter);
+      queryParams.set('stepUpRate', data.stepUpRate);
+      queryParams.set('returnRate', data.returnRate);
+      queryParams.set('inflationRate', data.inflationRate);
+      console.log(queryParams.toString());
+      url = `${url}?${queryParams.toString()}`;
       const message = `Check out this investment calculator: ${url}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     }
