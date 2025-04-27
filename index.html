@@ -264,7 +264,7 @@
           calculate();
         }
       }
-    };
+  };
     onLoad();
     // bind range sync
     const bindRangeSync = (rangeEl, inputEl, min, max, callback = (value) => {}) => {
@@ -338,7 +338,7 @@
           const n = (years - year) * 12 - (month - 1);
           futureValue += currentInvestment * Math.pow(1 + monthlyRate, n);
         }
-        accumulated += currentInvestment * 12;
+        accumulated += monthlyInvestment * 12;
         currentInvestment *= (1 + stepUpRate);
       }
 
