@@ -338,7 +338,7 @@
           const n = (years - year) * 12 - (month - 1);
           futureValue += currentInvestment * Math.pow(1 + monthlyRate, n);
         }
-        accumulated += monthlyInvestment * 12;
+        accumulated += currentInvestment * 12;
         currentInvestment *= (1 + stepUpRate);
       }
 
