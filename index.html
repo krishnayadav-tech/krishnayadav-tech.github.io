@@ -157,20 +157,6 @@
             </div>
           </div>
 
-          <!-- Time (Years) -->
-          <div class="mb-3">
-            <label class="form-label">Withdraw After (Years from Today)</label>
-            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
-              title="When you plan to take out your money (years from today) ?"></i>
-            <div class="slider-group">
-              <input type="range" id="withdrawalAfterRange" class="form-range" min="1" max="50" value="10">
-              <div class="input-group">
-                <input type="number" id="withdrawalAfterInput" class="form-control" min="1" max="50" value="10">
-                <span class="input-group-text">Yrs</span>
-              </div>
-            </div>
-          </div>
-
           <!-- Step-up Rate -->
           <div class="mb-3">
             <label class="form-label">Annual Step-up (%)</label>
@@ -205,6 +191,20 @@
               <div class="input-group">
                 <input type="number" id="inflationRateInput" class="form-control" min="0" max="15" step="0.1" value="6">
                 <span class="input-group-text">%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Widthdrawal Time (Years) -->
+          <div class="mb-3">
+            <label class="form-label">Withdraw After (Years from Today)</label>
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+              title="When you plan to take out your money (years from today) ?"></i>
+            <div class="slider-group">
+              <input type="range" id="withdrawalAfterRange" class="form-range" min="1" max="50" value="10">
+              <div class="input-group">
+                <input type="number" id="withdrawalAfterInput" class="form-control" min="1" max="50" value="10">
+                <span class="input-group-text">Yrs</span>
               </div>
             </div>
           </div>
@@ -267,9 +267,10 @@
     };
     onLoad();
     // bind range sync
-    const bindRangeSync = (rangeEl, inputEl, min, max) => {
+    const bindRangeSync = (rangeEl, inputEl, min, max, callback = (value) => {}) => {
       rangeEl.addEventListener('input', () => {
         inputEl.value = rangeEl.value;
+        callback(rangeEl.value);
       });
 
       inputEl.addEventListener('input', () => {
@@ -286,6 +287,7 @@
           inputEl.value = min;
         }
         rangeEl.value = val;
+        callback(val);
       });
     };
     // format INR
@@ -409,7 +411,10 @@
     });
     // JS code to bind the range and input fields
 
-    bindRangeSync(timeRange, timeInput, 1, 50);
+    bindRangeSync(timeRange, timeInput, 1, 50, (value) => {
+      withdrawalAfterRange.value = value;
+      withdrawalAfterInput.value = value;
+    });
     bindRangeSync(returnRateRange, returnRateInput, 1, 40);
     bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
     bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
