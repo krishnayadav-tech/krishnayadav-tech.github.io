@@ -102,6 +102,17 @@
       gap: 20px;
       padding: 10px 0;
     }
+
+    .header-container {
+      margin-bottom: 20px;
+      align-items: center;
+    }
+
+    .shareButton {
+      border: none;
+      padding-top: 0;
+      padding-right: 0;
+    }
   </style>
 </head>
 
@@ -110,12 +121,18 @@
     <div class="row justify-content-center">
       <div class="col-md-8">
         <div class="card shadow-sm p-4 content-container">
-          <h2 class="text-center mb-4">Investment Calculator</h2>
+          <div class="d-flex align-items-center justify-content-between header-container">
+            <h4 class="fw-bold">Investment Calculator</h4>
+            <!-- add share button -->
+            <button class="btn shareButton" id="shareBtn" onclick="share()">
+              <i class="bi bi-whatsapp text-success"></i>
+            </button>
+          </div>
 
           <!-- Initial Amount -->
           <div class="mb-3">
             <label class="form-label">Initial Amount</label>
-            <input type="text" id="initialAmount" class="form-control" value="1,00,000">
+            <input type="text" id="initialAmountInput" class="form-control" value="1,00,000">
           </div>
 
           <!-- Monthly Investment -->
@@ -123,7 +140,7 @@
             <label class="form-label">Additional Monthly Investment</label>
             <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
               title="How much you plan to invest every month ?"></i>
-            <input type="text" id="amount" class="form-control" value="10,000">
+            <input type="text" id="amountInput" class="form-control" value="10,000">
           </div>
 
           <!-- Time (Years) -->
@@ -132,7 +149,7 @@
             <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
               title="How long you plan to continue investing monthly for this investment ?"></i>
             <div class="slider-group">
-              <input type="range" id="time" class="form-range" min="1" max="50" value="10">
+              <input type="range" id="timeRange" class="form-range" min="1" max="50" value="10">
               <div class="input-group">
                 <input type="number" id="timeInput" class="form-control" min="1" max="50" value="10">
                 <span class="input-group-text">Yrs</span>
@@ -146,7 +163,7 @@
             <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
               title="When you plan to take out your money (years from today) ?"></i>
             <div class="slider-group">
-              <input type="range" id="withdrawalAfter" class="form-range" min="1" max="50" value="10">
+              <input type="range" id="withdrawalAfterRange" class="form-range" min="1" max="50" value="10">
               <div class="input-group">
                 <input type="number" id="withdrawalAfterInput" class="form-control" min="1" max="50" value="10">
                 <span class="input-group-text">Yrs</span>
@@ -162,7 +179,7 @@
             <div class="slider-group">
               <input type="range" id="stepUpRateRange" class="form-range" min="0" max="20" step="0.1" value="0">
               <div class="input-group">
-                <input type="number" id="stepUpRate" class="form-control" min="0" max="20" step="0.1" value="0">
+                <input type="number" id="stepUpRateInput" class="form-control" min="0" max="20" step="0.1" value="0">
                 <span class="input-group-text">%</span>
               </div>
             </div>
@@ -172,7 +189,7 @@
           <div class="mb-3">
             <label class="form-label">Expected Return Rate (P.A)</label>
             <div class="slider-group">
-              <input type="range" id="returnRate" class="form-range" min="1" max="40" step="0.1" value="12">
+              <input type="range" id="returnRateRange" class="form-range" min="1" max="40" step="0.1" value="12">
               <div class="input-group">
                 <input type="number" id="returnRateInput" class="form-control" min="1" max="40" step="0.1" value="12">
                 <span class="input-group-text">%</span>
@@ -186,7 +203,7 @@
             <div class="slider-group">
               <input type="range" id="inflationRateRange" class="form-range" min="0" max="15" step="0.1" value="6">
               <div class="input-group">
-                <input type="number" id="inflationRate" class="form-control" min="0" max="15" step="0.1" value="6">
+                <input type="number" id="inflationRateInput" class="form-control" min="0" max="15" step="0.1" value="6">
                 <span class="input-group-text">%</span>
               </div>
             </div>
@@ -200,14 +217,68 @@
   </div>
 
   <script>
+    // variable 
+    const timeRange = document.getElementById('timeRange');
+    const timeInput = document.getElementById('timeInput');
+    const returnRateRange = document.getElementById('returnRateRange');
+    const returnRateInput = document.getElementById('returnRateInput');
+    const inflationRateRange = document.getElementById('inflationRateRange');
+    const inflationRateInput = document.getElementById('inflationRateInput');
+    const stepUpRateRange = document.getElementById('stepUpRateRange');
+    const stepUpRateInput = document.getElementById('stepUpRateInput');
+    const amountInput = document.getElementById('amountInput');
+    const initialAmountInput = document.getElementById('initialAmountInput');
+    const withdrawalAfterRange = document.getElementById('withdrawalAfterRange');
+    const withdrawalAfterInput = document.getElementById('withdrawalAfterInput');
+    // on value change
+    const saveData = () => {
+      localStorage.setItem('investment-calculator', JSON.stringify({
+        initialAmount: initialAmountInput.value,
+        amount: amountInput.value,
+        time: timeInput.value,
+        withdrawalAfter: withdrawalAfterInput.value,
+        stepUpRate: stepUpRateInput.value,
+        returnRate: returnRateInput.value,
+        inflationRate: inflationRateInput.value,
+      }));
+    };
+    // on load
+    const onLoad = () => {
+      const savedData = localStorage.getItem('investment-calculator');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        if (data) {
+          const { initialAmount, amount, time, withdrawalAfter, stepUpRate, returnRate: returnRateValue, inflationRate: inflationRateValue } = data;
+          initialAmountInput.value = initialAmount;
+          amountInput.value = amount;
+          timeInput.value = time;
+          timeRange.value = time;
+          withdrawalAfterInput.value = withdrawalAfter;
+          withdrawalAfterRange.value = withdrawalAfter;
+          stepUpRateInput.value = stepUpRate;
+          stepUpRateRange.value = stepUpRate;
+          returnRateInput.value = returnRateValue;
+          returnRateRange.value = returnRateValue;
+          inflationRateInput.value = inflationRateValue;
+          inflationRateRange.value = inflationRateValue;
+          calculate();
+        }
+      }
+    };
+    onLoad();
+    // bind range sync
     const bindRangeSync = (rangeEl, inputEl, min, max) => {
       rangeEl.addEventListener('input', () => {
-        console.log(rangeEl.value);
         inputEl.value = rangeEl.value;
       });
 
       inputEl.addEventListener('input', () => {
         const val = Math.min(Math.max(parseFloat(inputEl.value), min), max);
+        // handle 0 value
+        if (val === 0) {
+          rangeEl.value = 0;
+          return;
+        }
         if (val >= max) {
           inputEl.value = max;
         }
@@ -217,7 +288,7 @@
         rangeEl.value = val;
       });
     };
-
+    // format INR
     const formatINR = val => {
       const num = parseFloat(val.replace(/,/g, ''));
       return isNaN(num) ? '' : Number(num).toLocaleString('en-IN');
@@ -225,24 +296,36 @@
 
     const bindCommaFormatting = input => {
       input.addEventListener('input', e => {
-        e.target.value = formatINR(e.target.value);
+        const val = e.target.value.replace(/,/g, '');
+        if (val.length > 0 && Number(val) === 0) {
+          return;
+        }
+        e.target.value = formatINR(val);
       });
     };
-
-    const toINR = val => Number(Math.round(val)).toLocaleString('en-IN', {
-      maximumFractionDigits: 0,
-      minimumFractionDigits: 0,
-    });
-
+    // to INR
+    function toINR(val) {
+      return Number(Math.round(val)).toLocaleString('en-IN', {
+        maximumFractionDigits: 0,
+        minimumFractionDigits: 0,
+      });
+    }
+    // share
+    function share() {
+      const url = window.location.href;
+      const message = `Check out this investment calculator: ${url}`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+    }
+    // calculate
     function calculate() {
       const monthlyInvestment = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
       const initialAmount = parseFloat(initialAmountInput.value.replace(/,/g, '') || 0);
       const stepUpRate = parseFloat(stepUpRateInput.value) / 100;
-      const years = parseInt(time.value);
-      const rate = parseFloat(returnRate.value) / 100;
+      const years = parseInt(timeRange.value);
+      const rate = parseFloat(returnRateRange.value) / 100;
       const inflation = parseFloat(inflationRateInput.value) / 100;
       const monthlyRate = rate / 12;
-      const withdrawalAfter = parseInt(withdrawalAfterInput.value);
+      const withdrawalAfter = parseInt(withdrawalAfterRange.value);
 
       let futureValue = 0;
       let accumulated = 0;
@@ -269,6 +352,8 @@
       const inflationAdjusted = futureValue / Math.pow(1 + inflation, Math.max(withdrawalAfter, years));
       const returnStatus = rate >= inflation ? 'good' : 'bad';
       const output = document.getElementById('output');
+
+      saveData();
 
       output.classList.remove('d-none');
       output.innerHTML = `
@@ -323,32 +408,20 @@
       new bootstrap.Tooltip(el);
     });
     // JS code to bind the range and input fields
-    const time = document.getElementById('time');
-    const timeInput = document.getElementById('timeInput');
-    const returnRate = document.getElementById('returnRate');
-    const returnRateInput = document.getElementById('returnRateInput');
-    const inflationRateRange = document.getElementById('inflationRateRange');
-    const inflationRateInput = document.getElementById('inflationRate');
-    const stepUpRateRange = document.getElementById('stepUpRateRange');
-    const stepUpRateInput = document.getElementById('stepUpRate');
-    const amountInput = document.getElementById('amount');
-    const initialAmountInput = document.getElementById('initialAmount');
-    const withdrawalAfterInput = document.getElementById('withdrawalAfterInput');
-    const withdrawalAfter = document.getElementById('withdrawalAfter');
 
-    bindRangeSync(time, timeInput, 1, 30);
-    bindRangeSync(returnRate, returnRateInput, 1, 30);
+    bindRangeSync(timeRange, timeInput, 1, 50);
+    bindRangeSync(returnRateRange, returnRateInput, 1, 40);
     bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
     bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
     bindCommaFormatting(amountInput);
     bindCommaFormatting(initialAmountInput);
-    bindRangeSync(withdrawalAfter, withdrawalAfterInput, 1, 50);
+    bindRangeSync(withdrawalAfterRange, withdrawalAfterInput, 1, 50);
 
     // JS code to calculate the investment summary
     [
-      time,
+      timeRange,
       timeInput,
-      returnRate,
+      returnRateRange,
       returnRateInput,
       inflationRateRange,
       inflationRateInput,
@@ -356,8 +429,8 @@
       stepUpRateInput,
       amountInput,
       initialAmountInput,
+      withdrawalAfterRange,
       withdrawalAfterInput,
-      withdrawalAfter
     ].forEach(el => {
       el.addEventListener('input', () => {
         calculate();
