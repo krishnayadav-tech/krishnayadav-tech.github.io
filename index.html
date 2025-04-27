@@ -217,7 +217,7 @@
   </div>
 
   <script>
-    // variable 
+    // variable
     const timeRange = document.getElementById('timeRange');
     const timeInput = document.getElementById('timeInput');
     const returnRateRange = document.getElementById('returnRateRange');
@@ -230,11 +230,42 @@
     const initialAmountInput = document.getElementById('initialAmountInput');
     const withdrawalAfterRange = document.getElementById('withdrawalAfterRange');
     const withdrawalAfterInput = document.getElementById('withdrawalAfterInput');
+
+    bindRangeSync(timeRange, timeInput, 1, 50, (value) => {
+      withdrawalAfterRange.value = value;
+      withdrawalAfterInput.value = value;
+    });
+    bindRangeSync(returnRateRange, returnRateInput, 1, 40);
+    bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
+    bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
+    bindCommaFormatting(amountInput);
+    bindCommaFormatting(initialAmountInput);
+    bindRangeSync(withdrawalAfterRange, withdrawalAfterInput, 1, 50);
+
+    // JS code to calculate the investment summary
+    [
+      timeRange,
+      timeInput,
+      returnRateRange,
+      returnRateInput,
+      inflationRateRange,
+      inflationRateInput,
+      stepUpRateRange,
+      stepUpRateInput,
+      amountInput,
+      initialAmountInput,
+      withdrawalAfterRange,
+      withdrawalAfterInput,
+    ].forEach(el => {
+      el.addEventListener('input', () => {
+        calculate();
+      });
+    });
     // on value change
-    const saveData = () => {
+    function saveData() {
       localStorage.setItem('investment-calculator', JSON.stringify({
-        initialAmount: initialAmountInput.value,
-        amount: amountInput.value,
+        initialAmount: initialAmountInput.value.replace(/,/g, ''), // Save without commas
+        amount: amountInput.value.replace(/,/g, ''), // Save without commas
         time: timeInput.value,
         withdrawalAfter: withdrawalAfterInput.value,
         stepUpRate: stepUpRateInput.value,
@@ -242,56 +273,61 @@
         inflationRate: inflationRateInput.value,
       }));
     };
+
+    function sanitizeNumber(number) {
+      return isNaN(parseFloat(number)) ? 0 : parseFloat(number.replace(/,/g, ''));
+    }
+
     // on load
-    
     const onLoad = () => {
       const savedData = localStorage.getItem('investment-calculator');
       // check query params
       const urlParams = new URLSearchParams(window.location.search);
-      const initialAmount = urlParams.get('initialAmount');
-      const amount = urlParams.get('amount');
-      const time = urlParams.get('time');
-      const withdrawalAfter = urlParams.get('withdrawalAfter');
-      const stepUpRate = urlParams.get('stepUpRate');
-      const returnRate = urlParams.get('returnRate');
-      const inflationRate = urlParams.get('inflationRate');
-      if (initialAmount) {
-        initialAmountInput.value = initialAmount;
-        amountInput.value = amount;
-        timeInput.value = time;
-        timeRange.value = time;
-        withdrawalAfterInput.value = withdrawalAfter;
-        withdrawalAfterRange.value = withdrawalAfter;
-        stepUpRateInput.value = stepUpRate;
-        stepUpRateRange.value = stepUpRate;
-        returnRateInput.value = returnRate;
-        returnRateRange.value = returnRate;
-        inflationRateInput.value = inflationRate;
-        inflationRateRange.value = inflationRate;
+      const initialAmountParam = urlParams.get('initialAmount');
+      const amountParam = urlParams.get('amount');
+      const timeParam = urlParams.get('time');
+      const withdrawalAfterParam = urlParams.get('withdrawalAfter');
+      const stepUpRateParam = urlParams.get('stepUpRate');
+      const returnRateParam = urlParams.get('returnRate');
+      const inflationRateParam = urlParams.get('inflationRate');
+
+      if (initialAmountParam) {
+        initialAmountInput.value = formatINR(sanitizeNumber(initialAmountParam));
+        amountInput.value = formatINR(sanitizeNumber(amountParam));
+        timeInput.value = sanitizeNumber(timeParam);
+        timeRange.value = sanitizeNumber(timeParam);
+        withdrawalAfterInput.value = sanitizeNumber(withdrawalAfterParam);
+        withdrawalAfterRange.value = sanitizeNumber(withdrawalAfterParam);
+        stepUpRateInput.value = sanitizeNumber(stepUpRateParam);
+        stepUpRateRange.value = sanitizeNumber(stepUpRateParam);
+        returnRateInput.value = sanitizeNumber(returnRateParam);
+        returnRateRange.value = sanitizeNumber(returnRateParam);
+        inflationRateInput.value = sanitizeNumber(inflationRateParam);
+        inflationRateRange.value = sanitizeNumber(inflationRateParam);
         calculate();
       } else if (savedData) {
         const data = JSON.parse(savedData);
         if (data) {
           const { initialAmount, amount, time, withdrawalAfter, stepUpRate, returnRate: returnRateValue, inflationRate: inflationRateValue } = data;
-          initialAmountInput.value = initialAmount;
-          amountInput.value = amount;
-          timeInput.value = time;
-          timeRange.value = time;
-          withdrawalAfterInput.value = withdrawalAfter;
-          withdrawalAfterRange.value = withdrawalAfter;
-          stepUpRateInput.value = stepUpRate;
-          stepUpRateRange.value = stepUpRate;
-          returnRateInput.value = returnRateValue;
-          returnRateRange.value = returnRateValue;
-          inflationRateInput.value = inflationRateValue;
-          inflationRateRange.value = inflationRateValue;
+          initialAmountInput.value = formatINR(sanitizeNumber(initialAmount));
+          amountInput.value = formatINR(sanitizeNumber(amount));
+          timeInput.value = sanitizeNumber(time);
+          timeRange.value = sanitizeNumber(time);
+          withdrawalAfterInput.value = sanitizeNumber(withdrawalAfter);
+          withdrawalAfterRange.value = sanitizeNumber(withdrawalAfter);
+          stepUpRateInput.value = sanitizeNumber(stepUpRate);
+          stepUpRateRange.value = sanitizeNumber(stepUpRate);
+          returnRateInput.value = sanitizeNumber(returnRateValue);
+          returnRateRange.value = sanitizeNumber(returnRateValue);
+          inflationRateInput.value = sanitizeNumber(inflationRateValue);
+          inflationRateRange.value = sanitizeNumber(inflationRateValue);
           calculate();
         }
       }
-  };
+    };
     onLoad();
     // bind range sync
-    const bindRangeSync = (rangeEl, inputEl, min, max, callback = (value) => {}) => {
+    function bindRangeSync(rangeEl, inputEl, min, max, callback = (value) => { }) {
       rangeEl.addEventListener('input', () => {
         inputEl.value = rangeEl.value;
         callback(rangeEl.value);
@@ -314,13 +350,13 @@
         callback(val);
       });
     };
-    // format INR
-    const formatINR = val => {
-      const num = parseFloat(val.replace(/,/g, ''));
+
+    function formatINR(val) {
+      const num = parseFloat(String(val).replace(/,/g, ''));
       return isNaN(num) ? '' : Number(num).toLocaleString('en-IN');
     };
 
-    const bindCommaFormatting = input => {
+    function bindCommaFormatting(input) {
       input.addEventListener('input', e => {
         const val = e.target.value.replace(/,/g, '');
         if (val.length > 0 && Number(val) === 0) {
@@ -338,7 +374,7 @@
     }
     // share
     function share() {
-      let url = window.location.href;
+      let url = window.location.host;
       const queryParams = new URLSearchParams(window.location.search);
       const localData = localStorage.getItem('investment-calculator');
       const data = JSON.parse(localData);
@@ -349,7 +385,6 @@
       queryParams.set('stepUpRate', data.stepUpRate);
       queryParams.set('returnRate', data.returnRate);
       queryParams.set('inflationRate', data.inflationRate);
-      console.log(queryParams.toString());
       url = `${url}?${queryParams.toString()}`;
       const message = `Check out this investment calculator: ${url}`;
       window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
@@ -416,7 +451,7 @@
               </div>
               <div class="col-md-4">
                 <div class="p-3 rounded bg-light">
-                  <div class="text-muted small mb-1">📉 Inflation Adjusted 
+                  <div class="text-muted small mb-1">📉 Inflation Adjusted
                     <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
                       title="What it looks like in today's world (Inflation adjusted)"></i>
                   </div>
@@ -446,37 +481,6 @@
       new bootstrap.Tooltip(el);
     });
     // JS code to bind the range and input fields
-
-    bindRangeSync(timeRange, timeInput, 1, 50, (value) => {
-      withdrawalAfterRange.value = value;
-      withdrawalAfterInput.value = value;
-    });
-    bindRangeSync(returnRateRange, returnRateInput, 1, 40);
-    bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
-    bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
-    bindCommaFormatting(amountInput);
-    bindCommaFormatting(initialAmountInput);
-    bindRangeSync(withdrawalAfterRange, withdrawalAfterInput, 1, 50);
-
-    // JS code to calculate the investment summary
-    [
-      timeRange,
-      timeInput,
-      returnRateRange,
-      returnRateInput,
-      inflationRateRange,
-      inflationRateInput,
-      stepUpRateRange,
-      stepUpRateInput,
-      amountInput,
-      initialAmountInput,
-      withdrawalAfterRange,
-      withdrawalAfterInput,
-    ].forEach(el => {
-      el.addEventListener('input', () => {
-        calculate();
-      });
-    });
 
     calculate();
   </script>
