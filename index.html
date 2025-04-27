@@ -27,6 +27,32 @@
       -moz-appearance: textfield;
     }
 
+    /* Disable pointer events on the slider initially */
+    input[type="range"] {
+      pointer-events: none;
+    }
+
+    /* Enable pointer events only when the slider is touched */
+    input[type="range"]:active {
+      pointer-events: all;
+    }
+
+    /* Optional: Styling for the thumb */
+    input[type="range"]::-webkit-slider-thumb {
+      pointer-events: all;
+      /* Ensure the thumb can still be interacted with */
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      pointer-events: all;
+      /* For Firefox */
+    }
+
+    input[type="range"]::-ms-thumb {
+      pointer-events: all;
+      /* For Internet Explorer */
+    }
+
     #output .card {
       border-radius: 12px;
       transition: all 0.3s ease-in-out;
@@ -43,7 +69,7 @@
     }
 
     .input-group {
-      width: 100px;
+      width: 100%;
     }
 
     .form-range {
@@ -54,7 +80,7 @@
       min-width: 20px;
       justify-content: center;
     }
-    
+
     .content-container {
       box-shadow: 0px 0px 30px 0px #1369EB1A !important;
       border: none !important;
@@ -69,6 +95,13 @@
     .justify-content-center {
       justify-content: center !important;
     }
+
+    .slider-group {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 20px;
+      padding: 10px 0;
+    }
   </style>
 </head>
 
@@ -79,21 +112,25 @@
         <div class="card shadow-sm p-4 content-container">
           <h2 class="text-center mb-4">Investment Calculator</h2>
 
-           <!-- Initial Amount -->
-           <div class="mb-3">
-            <label class="form-label">Initial Amount:</label>
-            <input type="text" id="initialAmount" class="form-control" value="10,000">
+          <!-- Initial Amount -->
+          <div class="mb-3">
+            <label class="form-label">Initial Amount</label>
+            <input type="text" id="initialAmount" class="form-control" value="1,00,000">
           </div>
 
           <!-- Monthly Investment -->
           <div class="mb-3">
-            <label class="form-label">Additional Monthly Investment:</label>
+            <label class="form-label">Additional Monthly Investment</label>
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+              title="How much you plan to invest every month ?"></i>
             <input type="text" id="amount" class="form-control" value="10,000">
           </div>
 
           <!-- Time (Years) -->
           <div class="mb-3">
-            <label class="form-label">Time (Years):</label>
+            <label class="form-label">Monthly Investment Period (Years)</label>
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+              title="How long you plan to continue investing monthly for this investment ?"></i>
             <div class="slider-group">
               <input type="range" id="time" class="form-range" min="1" max="50" value="10">
               <div class="input-group">
@@ -103,9 +140,25 @@
             </div>
           </div>
 
+          <!-- Time (Years) -->
+          <div class="mb-3">
+            <label class="form-label">Withdraw After (Years from Today)</label>
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+              title="When you plan to take out your money (years from today) ?"></i>
+            <div class="slider-group">
+              <input type="range" id="withdrawalAfter" class="form-range" min="1" max="50" value="10">
+              <div class="input-group">
+                <input type="number" id="withdrawalAfterInput" class="form-control" min="1" max="50" value="10">
+                <span class="input-group-text">Yrs</span>
+              </div>
+            </div>
+          </div>
+
           <!-- Step-up Rate -->
           <div class="mb-3">
-            <label class="form-label">Annual Step-up (%):</label>
+            <label class="form-label">Annual Step-up (%)</label>
+            <i class="bi bi-info-circle ms-1" data-bs-toggle="tooltip"
+              title="How much you plan to increase your monthly investment by each year ?"></i>
             <div class="slider-group">
               <input type="range" id="stepUpRateRange" class="form-range" min="0" max="20" step="0.1" value="0">
               <div class="input-group">
@@ -117,7 +170,7 @@
 
           <!-- Expected Return Rate -->
           <div class="mb-3">
-            <label class="form-label">Expected Return Rate (P.A):</label>
+            <label class="form-label">Expected Return Rate (P.A)</label>
             <div class="slider-group">
               <input type="range" id="returnRate" class="form-range" min="1" max="40" step="0.1" value="12">
               <div class="input-group">
@@ -129,7 +182,7 @@
 
           <!-- Inflation Rate -->
           <div class="mb-3">
-            <label class="form-label">Inflation Rate (P.A):</label>
+            <label class="form-label">Inflation Rate (P.A)</label>
             <div class="slider-group">
               <input type="range" id="inflationRateRange" class="form-range" min="0" max="15" step="0.1" value="6">
               <div class="input-group">
@@ -184,11 +237,12 @@
     function calculate() {
       const monthlyInvestment = parseFloat(amountInput.value.replace(/,/g, '')) || 0;
       const initialAmount = parseFloat(initialAmountInput.value.replace(/,/g, '') || 0);
-      const stepUpRate = parseFloat(stepUpRateInput.value || 0) / 100;
-      const years = parseInt(time.value || 0);
-      const rate = parseFloat(returnRate.value || 0) / 100;
-      const inflation = parseFloat(inflationRateInput.value || 0) / 100;
+      const stepUpRate = parseFloat(stepUpRateInput.value) / 100;
+      const years = parseInt(time.value);
+      const rate = parseFloat(returnRate.value) / 100;
+      const inflation = parseFloat(inflationRateInput.value) / 100;
       const monthlyRate = rate / 12;
+      const withdrawalAfter = parseInt(withdrawalAfterInput.value);
 
       let futureValue = 0;
       let accumulated = 0;
@@ -207,8 +261,12 @@
         futureValue += initialAmount * Math.pow(1 + rate, years);
         accumulated += initialAmount;
       }
+      // calcualte the future value after withdrawal
+      if (withdrawalAfter > years) {
+        futureValue = futureValue * Math.pow(1 + rate, withdrawalAfter - years);
+      }
 
-      const inflationAdjusted = futureValue / Math.pow(1 + inflation, years);
+      const inflationAdjusted = futureValue / Math.pow(1 + inflation, Math.max(withdrawalAfter, years));
       const returnStatus = rate >= inflation ? 'good' : 'bad';
       const output = document.getElementById('output');
 
@@ -254,31 +312,16 @@
         </div>
       `;
 
-      bootstrap.Tooltip.getInstance(document.querySelector('[data-bs-toggle="tooltip"]'))?.dispose();
-      new bootstrap.Tooltip(document.querySelector('[data-bs-toggle="tooltip"]'));
+      document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+        bootstrap.Tooltip.getInstance(el)?.dispose();
+        new bootstrap.Tooltip(el);
+      });
     }
 
-    // Slider disable 
-    const sliders = document.querySelectorAll('input[type="range"]');
-    sliders.forEach(slider => {
-      slider.addEventListener('mousedown', e => {
-        const thumbWidth = 20; // Approximate thumb size
-        const sliderRect = slider.getBoundingClientRect();
-        const clickX = e.clientX - sliderRect.left;
-        const percent = clickX / sliderRect.width;
-        const value = slider.min * 1 + percent * (slider.max - slider.min);
-
-        // Get current slider value position
-        const currentPercent = (slider.value - slider.min) / (slider.max - slider.min);
-        const currentX = currentPercent * sliderRect.width;
-
-        // Only allow drag if user clicked near the thumb
-        if (Math.abs(currentX - clickX) > thumbWidth / 2) {
-          e.preventDefault(); // Block jump
-        }
-      });
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+      bootstrap.Tooltip.getInstance(el)?.dispose();
+      new bootstrap.Tooltip(el);
     });
-  
     // JS code to bind the range and input fields
     const time = document.getElementById('time');
     const timeInput = document.getElementById('timeInput');
@@ -290,13 +333,16 @@
     const stepUpRateInput = document.getElementById('stepUpRate');
     const amountInput = document.getElementById('amount');
     const initialAmountInput = document.getElementById('initialAmount');
+    const withdrawalAfterInput = document.getElementById('withdrawalAfterInput');
+    const withdrawalAfter = document.getElementById('withdrawalAfter');
 
-    bindRangeSync(time, timeInput, 1, 50);
-    bindRangeSync(returnRate, returnRateInput, 1, 40);
+    bindRangeSync(time, timeInput, 1, 30);
+    bindRangeSync(returnRate, returnRateInput, 1, 30);
     bindRangeSync(inflationRateRange, inflationRateInput, 0, 15);
     bindRangeSync(stepUpRateRange, stepUpRateInput, 0, 20);
     bindCommaFormatting(amountInput);
     bindCommaFormatting(initialAmountInput);
+    bindRangeSync(withdrawalAfter, withdrawalAfterInput, 1, 50);
 
     // JS code to calculate the investment summary
     [
@@ -309,12 +355,14 @@
       stepUpRateRange,
       stepUpRateInput,
       amountInput,
-      initialAmountInput
+      initialAmountInput,
+      withdrawalAfterInput,
+      withdrawalAfter
     ].forEach(el => {
       el.addEventListener('input', () => {
         calculate();
       });
-    }); 
+    });
 
     calculate();
   </script>
